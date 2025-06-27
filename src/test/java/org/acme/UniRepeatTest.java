@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class UniRepeatTest {
 
     @Test
-    void testUniRepeat( ) {
+    void testUniRepeatUntil( ) {
         AtomicInteger counter = new AtomicInteger( 0 );
 
         Uni< Integer > numIncreateUni = Uni.createFrom( ).item( counter ).map( c -> {
@@ -24,6 +24,33 @@ public class UniRepeatTest {
         } );
 
         List< Integer > numResultList = numIncreateUni.repeat( ).until( num -> {
+            // It should run numIncreateUni 2 times.
+            return ( num == 2 );
+        } ).collect( ).asList( ).await( ).indefinitely( );
+
+        // The expected result in the list should be [1, 2]
+        Log.info( "numResultList size: " + numResultList.size( ) );
+
+        for ( int i = 0; i < numResultList.size( ); ++i ) {
+            Log.info( "numList[" + i + "]: " + numResultList.get( i ) );
+        }
+
+        // But turns out that only [1] was "collected"...where is [2]?
+        Assertions.assertEquals( 2, numResultList.size( ) );
+    }
+
+    @Test
+    void testUniRepeatWhilst( ) {
+        AtomicInteger counter = new AtomicInteger( 0 );
+
+        Uni< Integer > numIncreateUni = Uni.createFrom( ).item( counter ).map( c -> {
+            int num = counter.incrementAndGet( );
+            Log.info( "num: " + num );
+
+            return num;
+        } );
+
+        List< Integer > numResultList = numIncreateUni.repeat( ).whilst( num -> {
             // It should run numIncreateUni 2 times.
             return ( num == 2 );
         } ).collect( ).asList( ).await( ).indefinitely( );
